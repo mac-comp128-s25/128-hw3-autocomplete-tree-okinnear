@@ -14,7 +14,7 @@ public class PrefixTree {
     // Number of words contained in the tree
     private int size;
 
-    public PrefixTree(){
+    public PrefixTree() {
         root = new TreeNode();
     }
 
@@ -23,8 +23,26 @@ public class PrefixTree {
      * If the word, is already in the tree, then this has no effect.
      * @param word
      */
-    public void add(String word){
-        //TODO: complete me
+    public void add(String word) {
+        TreeNode currentNode = root;
+        // Add each letter to tree:
+        for (char c : word.toCharArray()) {
+            if (currentNode.children.containsKey(c)) {
+                // Move down the tree
+                currentNode = currentNode.children.get(c);
+            } else {
+                // Create a new node
+                final TreeNode newNode = new TreeNode();
+                newNode.letter = c;
+                currentNode.children.put(c, newNode);
+                currentNode = newNode;
+            }
+        }
+        // Only increase size if word does not already exist
+        if (!currentNode.isWord) {
+            currentNode.isWord = true;
+            size++;
+        }
     }
 
     /**
@@ -32,9 +50,16 @@ public class PrefixTree {
      * @param word
      * @return true if contained in the tree.
      */
-    public boolean contains(String word){
-        //TODO: complete me
-        return false;
+    public boolean contains(String word) {
+        TreeNode currentNode = root;
+        // Walk tree for word
+        for (char c : word.toCharArray()) {
+            currentNode = currentNode.children.get(c);
+            if (currentNode == null) {
+                return false;
+            }
+        }
+        return currentNode.isWord;
     }
 
     /**
@@ -43,15 +68,36 @@ public class PrefixTree {
      * @param prefix
      * @return list of words with prefix
      */
-    public ArrayList<String> getWordsForPrefix(String prefix){
-        //TODO: complete me
-        return null;
+    public ArrayList<String> getWordsForPrefix(String prefix) {
+        TreeNode currentNode = root;
+        // Navigate to the prefix
+        for (char c : prefix.toCharArray()) {
+            currentNode = currentNode.children.get(c);
+            if (currentNode == null) {
+                return new ArrayList<>();
+            }
+        }
+        // Then recursively find all words under that prefix
+        return searchPrefixes(prefix, currentNode);
+    }
+
+    private ArrayList<String> searchPrefixes(String prefix, TreeNode node) {
+        ArrayList<String> ret = new ArrayList<>();
+        // Add the current note if it is a word
+        if (node.isWord) {
+            ret.add(prefix);
+        }
+        // Recur into children
+        for (Map.Entry<Character, TreeNode> entry : node.children.entrySet()) {
+            ret.addAll(searchPrefixes(prefix + entry.getKey(), entry.getValue()));
+        }
+        return ret;
     }
 
     /**
      * @return the number of words in the tree
      */
-    public int size(){
+    public int size() {
         return size;
     }
     
